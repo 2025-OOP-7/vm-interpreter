@@ -33,6 +33,7 @@ Organization: [2025-oop-7](https://github.com/2025-oop-7)
  ```
 
 ## 🧩 구현 클래스 구조
+
 클래스	설명
 VMContext	가상 머신의 실행 상태 관리 (레지스터, 스택, 코드 메모리 등)
 Instruction	모든 명령어의 추상 클래스. execute(VMContext&) 메서드 포함
@@ -42,6 +43,7 @@ Main (Runner)	프로그램 전체 흐름 제어 (파일 읽기 → 명령 실행
 
 
 ## 🧮 명령어 집합
+
 명령어	설명
 `MOV [REG], [VAL	REG]`
 `ADD [REG], [VAL	REG]`
