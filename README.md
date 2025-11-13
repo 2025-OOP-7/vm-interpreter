@@ -25,10 +25,10 @@
 
 | 역할 | 담당자                        | 담당 파일                                                    |
 | ---- | ----------------------------- | ------------------------------------------------------------ |
-| A    | InstructionParser 담당        | `InstructionParser.h`, `InstructionParser.cpp`               |
-| B    | Instructions 담당             | `Instructions.h`, `Instructions.cpp`                         |
-| C    | VMContext 담당                | `VMContext.h`, `VMContext.cpp`                               |
-| D    | InstructionFactory, main 담당 | `InstructionFactory.h`, `InstructionFactory.cpp`, `main.cpp` |
+| 박유경    | InstructionParser 담당        | `InstructionParser.h`, `InstructionParser.cpp`               |
+| 고윤서    | Instructions 담당             | `Instructions.h`, `Instructions.cpp`                         |
+| 이혜린    | VMContext 담당                | `VMContext.h`, `VMContext.cpp`                               |
+| 이호재    | InstructionFactory, main 담당 | `InstructionFactory.h`, `InstructionFactory.cpp`, `main.cpp` |
 
 ## 빌드 방법
 
