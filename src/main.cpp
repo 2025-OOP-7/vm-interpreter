@@ -9,6 +9,8 @@
 
 #include "VMContext.h"
 #include "runner.h"
+#include <fstream>
+
 
 // 테스팅용 직접 opcode 조립 함수
 static std::uint32_t encode(std::uint8_t opcode, std::uint8_t flag, std::uint8_t op1, std::uint8_t op2) {
@@ -22,23 +24,28 @@ static std::uint32_t encode(std::uint8_t opcode, std::uint8_t flag, std::uint8_t
          | (static_cast<std::uint32_t>(op2) << 8);
 }
 
-int main() {
-    VMContext ctx;
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <program.bin>\n";
+        return 1;
+    }
 
-    // 예제 프로그램:
-    // R0 = 10
-    // R1 = 20
-    // ADD R0, R1
-    // PRINT R0    → 30 출력
-    // END
+    const char* filename = argv[1];
+
+    std::ifstream fin(filename, std::ios::binary);
+    if (!fin) {
+        std::cerr << "Failed to open file: " << filename << "\n";
+        return 1;
+    }
 
     std::vector<std::uint32_t> code;
+    std::uint32_t raw = 0;
 
-    code.push_back(encode(0x00, 1, 0, 10));   // MOV R0, 10
-    code.push_back(encode(0x00, 1, 1, 20));   // MOV R1, 20
-    code.push_back(encode(0x01, 0, 0, 1));    // ADD R0, R1
-    code.push_back(encode(0x0A, 0, 0, 0));     // PRINT R0
+    while (fin.read(reinterpret_cast<char*>(&raw), sizeof(raw))) {
+        code.push_back(raw);
+    }
 
+    VMContext ctx;
     ctx.loadCode(code);
 
     Runner::run(ctx);

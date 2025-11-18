@@ -7,40 +7,41 @@
 #include <stdexcept>
 #include <string>
 
+// InstructionFactory.cpp
+
 std::unique_ptr<Instruction> InstructionFactory::create(const ParsedInstruction& pi) {
     switch (pi.opcode) {
-
-        case 0x00: // MOV
+        case 0b000001: // 1: MOV
             return std::make_unique<MovInstruction>(pi.flag, pi.op1, pi.op2);
 
-        case 0x01: // ADD
+        case 0b000010: // 2: ADD
             return std::make_unique<AddInstruction>(pi.flag, pi.op1, pi.op2);
 
-        case 0x02: // SUB
+        case 0b000011: // 3: SUB
             return std::make_unique<SubInstruction>(pi.flag, pi.op1, pi.op2);
 
-        case 0x03: // MUL
+        case 0b000100: // 4: MUL
             return std::make_unique<MulInstruction>(pi.flag, pi.op1, pi.op2);
 
-        case 0x04: // CMP
+        case 0b000101: // 5: CMP
             return std::make_unique<CmpInstruction>(pi.flag, pi.op1, pi.op2);
 
-        case 0x05: // PUSH
+        case 0b000110: // 6: PUSH
             return std::make_unique<PushInstruction>(pi.flag, pi.op1, pi.op2);
 
-        case 0x06: // POP
+        case 0b000111: // 7: POP
             return std::make_unique<PopInstruction>(pi.flag, pi.op1, pi.op2);
 
-        case 0x07: // JMP
+        case 0b001000: // 8: JMP
             return std::make_unique<JmpInstruction>(pi.flag, pi.op1, pi.op2);
 
-        case 0x08: // BE
+        case 0b001001: // 9: BE
             return std::make_unique<BeInstruction>(pi.flag, pi.op1, pi.op2);
 
-        case 0x09: // BNE
+        case 0b001010: // 10: BNE
             return std::make_unique<BneInstruction>(pi.flag, pi.op1, pi.op2);
 
-        case 0x0A: // PRINT
+        case 0b001011: // 11: PRINT
             return std::make_unique<PrintInstruction>(pi.flag, pi.op1, pi.op2);
 
         default:

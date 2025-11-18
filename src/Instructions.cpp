@@ -40,12 +40,12 @@ static std::uint8_t resolveValue(std::uint8_t flag, std::uint8_t op1, std::uint8
 
 // dest 레지스터 번호를 반환 (flag에 따라 op1이 레지스터인지 확인)
 // flag 0 (RR) 또는 1 (RV)만 허용 (op1이 레지스터인 경우만)
-// 레지스터 범위 검증: R0(0), R1(1), R2(2), PC(3), SP(4), BP(5) → 0~5만 유효
+// 레지스터 범위 검증: R0(1), R1(2), R2(3), PC(4), SP(5), BP(6), ZF(7), CF(8), OF(9) → 1~9만 유효
 static Reg resolveDestRegister(std::uint8_t flag, std::uint8_t op1, const char* instrName) {
     if (flag == 0 || flag == 1) {  // RR or RV → op1은 레지스터
-        // 레지스터 인덱스 범위 검증 (0~5)
-        if (op1 > 5) {
-            throw std::runtime_error(std::string(instrName) + ": invalid register index (must be 0-5)");
+        // 레지스터 인덱스 범위 검증 (1~9)
+        if (op1 < 1 || op1 > 9) {
+            throw std::runtime_error(std::string(instrName) + ": invalid register index (must be 1-9)");
         }
         return static_cast<Reg>(op1);
     }
@@ -211,9 +211,9 @@ void PopInstruction::execute(VMContext& ctx) {
     if (flag_ != 0 && flag_ != 1) {
         throw std::runtime_error("POP: operand must be a register");
     }
-    // 레지스터 인덱스 범위 검증
-    if (op1_ > 5) {
-        throw std::runtime_error("POP: invalid register index (must be 0-5)");
+    // 레지스터 인덱스 범위 검증 (1~9)
+    if (op1_ < 1 || op1_ > 9) {
+        throw std::runtime_error("POP: invalid register index (must be 1-9)");
     }
     std::uint8_t value = ctx.pop();
     Reg destReg = static_cast<Reg>(op1_);
