@@ -10,16 +10,26 @@ constexpr std::uint32_t FLAG_MASK     = 0x03u;
 constexpr std::uint32_t OPERAND_MASK  = 0xFFu;
 }  // namespace
 
+// InstructionParser.cpp
+
 ParsedInstruction InstructionParser::parse(std::uint32_t raw) {
-    // Little-endian 입력을 가정.
-    // 과제 환경에서는 파일 생성 시점과 실행 환경의 엔디언이 동일하다고 가정하고 구현해도 무방함.
-    // 필요하다면 추후 바이트 스왑 함수를 추가하여 확장 가능.
-
-    const auto opcode = static_cast<std::uint8_t>((raw >> 26) & OPCODE_MASK);
-    const auto flag   = static_cast<std::uint8_t>((raw >> 24) & FLAG_MASK);
-    const auto op1    = static_cast<std::uint8_t>((raw >> 16) & OPERAND_MASK);
-    const auto op2    = static_cast<std::uint8_t>((raw >> 8)  & OPERAND_MASK);
-
-    return ParsedInstruction{opcode, flag, op1, op2};
+    // 실제 바이너리 파일의 바이트 순서: [opcode+flag, reserved, source, dest]
+    // Little-endian으로 읽은 raw 값을 바이트 배열로 해석
+    const std::uint8_t* bytes = reinterpret_cast<const std::uint8_t*>(&raw);
+    
+    // 바이트 순서: [bytes[0], bytes[1], bytes[2], bytes[3]]
+    // = [opcode+flag, reserved, source, dest]
+    const std::uint8_t opcode_flag = bytes[0];
+    // const std::uint8_t reserved = bytes[1];  // 무시
+    const std::uint8_t source = bytes[2];
+    const std::uint8_t dest = bytes[3];
+    
+    // opcode+flag에서 분리
+    const std::uint8_t opcode = (opcode_flag >> 2) & OPCODE_MASK;  // 상위 6bit
+    const std::uint8_t flag = opcode_flag & FLAG_MASK;              // 하위 2bit
+    
+    // ParsedInstruction: (opcode, flag, op1=dest, op2=src)
+    // 주의: op1은 destination, op2는 source (MOV dest, src 형태)
+    return ParsedInstruction{opcode, flag, dest, source};
 }
 

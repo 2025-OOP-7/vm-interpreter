@@ -1,0 +1,39 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "mkdir-build",
+      "type": "shell",
+      "command": "mkdir",
+      "args": ["-p", "${workspaceFolder}/build"],
+      "problemMatcher": []
+    },
+    {
+      "label": "build-project",
+      "type": "shell",
+      "command": "clang++ -std=c++17 -Iinclude -Isrc -g src/*.cpp -o build/interpreter",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$gcc"],
+      "dependsOn": ["mkdir-build"],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "build-current",
+      "type": "shell",
+      "command": "clang++",
+      "args": [
+        "-std=c++17",
+        "-Iinclude",
+        "-Isrc",
+        "-g",
+        "${file}",
+        "-o",
+        "${workspaceFolder}/build/${fileBasenameNoExtension}"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$gcc"],
+      "dependsOn": ["mkdir-build"],
+      "group": "build"
+    }
+  ]
+}

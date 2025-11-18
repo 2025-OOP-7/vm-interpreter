@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run VM Interpreter",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/interpreter",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build-project",
+      "terminal": "integrated",
+      "stopOnEntry": false
+    },
+    {
+      "name": "Run current file (LLDB)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/${fileBasenameNoExtension}",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build-current",
+      "terminal": "integrated",
+      "stopOnEntry": false
+    }
+  ]
+}
