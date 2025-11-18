@@ -22,7 +22,8 @@ void Runner::run(VMContext& ctx) {
 
         // 5) 다음 명령으로 이동
         // JMP/BE/BNE 내부에서 PC를 변경했으면 increment 금지
-        if (pi.opcode != 0x07 && pi.opcode != 0x08 && pi.opcode != 0x09) {
+        // JMP=8(0x08), BE=9(0x09), BNE=10(0x0A)
+        if (pi.opcode != 0x08 && pi.opcode != 0x09 && pi.opcode != 0x0A) {
             ctx.incrementPC();
         }
     }

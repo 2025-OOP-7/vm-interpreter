@@ -13,19 +13,23 @@ constexpr std::uint32_t OPERAND_MASK  = 0xFFu;
 // InstructionParser.cpp
 
 ParsedInstruction InstructionParser::parse(std::uint32_t raw) {
-    // 요구사항에 따른 32bit 명령어 구조:
-    // 31-26: opcode (6bit)
-    // 25-24: flag (2bit)
-    // 23-16: op1 (8bit)
-    // 15-8:  op2 (8bit)
-    // 7-0:   reserved (8bit, 무시)
+    // 실제 바이너리 파일의 바이트 순서: [opcode+flag, reserved, source, dest]
+    // Little-endian으로 읽은 raw 값을 바이트 배열로 해석
+    const std::uint8_t* bytes = reinterpret_cast<const std::uint8_t*>(&raw);
     
-    const std::uint8_t opcode = static_cast<std::uint8_t>((raw >> 26) & OPCODE_MASK);
-    const std::uint8_t flag   = static_cast<std::uint8_t>((raw >> 24) & FLAG_MASK);
-    const std::uint8_t op1    = static_cast<std::uint8_t>((raw >> 16) & OPERAND_MASK);
-    const std::uint8_t op2    = static_cast<std::uint8_t>((raw >> 8)  & OPERAND_MASK);
+    // 바이트 순서: [bytes[0], bytes[1], bytes[2], bytes[3]]
+    // = [opcode+flag, reserved, source, dest]
+    const std::uint8_t opcode_flag = bytes[0];
+    // const std::uint8_t reserved = bytes[1];  // 무시
+    const std::uint8_t source = bytes[2];
+    const std::uint8_t dest = bytes[3];
+    
+    // opcode+flag에서 분리
+    const std::uint8_t opcode = (opcode_flag >> 2) & OPCODE_MASK;  // 상위 6bit
+    const std::uint8_t flag = opcode_flag & FLAG_MASK;              // 하위 2bit
     
     // ParsedInstruction: (opcode, flag, op1=dest, op2=src)
-    return ParsedInstruction{opcode, flag, op1, op2};
+    // 주의: op1은 destination, op2는 source (MOV dest, src 형태)
+    return ParsedInstruction{opcode, flag, dest, source};
 }
 

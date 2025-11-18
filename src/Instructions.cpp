@@ -182,15 +182,19 @@ PushInstruction::PushInstruction(std::uint8_t flag, std::uint8_t op1, std::uint8
 void PushInstruction::execute(VMContext& ctx) {
     // 스택에 값 푸시
     // PUSH는 op1만 사용 (op2는 무시됨)
-    // PUSH [REG] 또는 PUSH [VALUE] 형태로 op1만 의미 있음
+    // 요구사항: flag 10=단일 Register, 11=단일 Value
     std::uint8_t value;
     switch (flag_) {
-        case 0:  // RR → op1=reg
-        case 1:  // RV → op1=reg
+        case 0:  // RR → op1=reg (두 피연산자 명령어에서 사용)
+        case 1:  // RV → op1=reg (두 피연산자 명령어에서 사용)
+        case 2:  // 10: 단일 Register만 Operand
+            // op1이 레지스터 번호 (1~9)
+            if (op1_ < 1 || op1_ > 9) {
+                throw std::runtime_error("PUSH: invalid register index (must be 1-9)");
+            }
             value = ctx.getRegister(static_cast<Reg>(op1_));
             break;
-        case 2:  // VR → op1=value
-        case 3:  // VV → op1=value
+        case 3:  // 11: 단일 Value만 Operand
             value = op1_;
             break;
         default:
@@ -207,8 +211,9 @@ PopInstruction::PopInstruction(std::uint8_t flag, std::uint8_t op1, std::uint8_t
 
 void PopInstruction::execute(VMContext& ctx) {
     // 스택에서 값 팝하여 레지스터에 저장
-    // POP은 op1이 항상 레지스터여야 함 (flag 0 또는 1만 허용)
-    if (flag_ != 0 && flag_ != 1) {
+    // POP은 op1이 항상 레지스터여야 함
+    // flag 0(RR), 1(RV), 2(VR-단일 Register) 허용
+    if (flag_ == 3) {  // VV는 허용 불가
         throw std::runtime_error("POP: operand must be a register");
     }
     // 레지스터 인덱스 범위 검증 (1~9)
@@ -264,7 +269,26 @@ PrintInstruction::PrintInstruction(std::uint8_t flag, std::uint8_t op1, std::uin
 
 void PrintInstruction::execute(VMContext& ctx) {
     // 레지스터 또는 즉값을 콘솔에 출력
-    std::uint8_t value = resolveValue(flag_, op1_, op2_, false, ctx);
+    // PRINT는 단일 피연산자(op1=dest)만 사용
+    // 요구사항: flag 10=단일 Register, 11=단일 Value
+    std::uint8_t value;
+    switch (flag_) {
+        case 0:  // RR → op1=reg (두 피연산자 명령어에서 사용)
+        case 1:  // RV → op1=reg (두 피연산자 명령어에서 사용)
+        case 2:  // 10: 단일 Register만 Operand
+            // op1이 레지스터 번호 (1~9)
+            if (op1_ < 1 || op1_ > 9) {
+                throw std::runtime_error("PRINT: invalid register index (must be 1-9)");
+            }
+            value = ctx.getRegister(static_cast<Reg>(op1_));
+            break;
+        case 3:  // 11: 단일 Value만 Operand
+            value = op1_;
+            break;
+        default:
+            value = 0;
+            break;
+    }
     // endl 대신 '\n' 사용 (불필요한 flush 방지로 성능 향상)
     std::cout << static_cast<int>(value) << '\n';
 }

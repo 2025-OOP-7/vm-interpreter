@@ -49,12 +49,12 @@ void VMContext::jump(std::uint8_t target) {
 
 void VMContext::push(std::uint8_t value) {
     std::uint8_t sp = regs_[(int)Reg::SP - 1];
-    // uint8_t는 최대 255이므로 STACK_SIZE(256)와 비교 시 항상 false
-    // 따라서 STACK_SIZE - 1과 비교해야 함
-    if (sp >= STACK_SIZE - 1) {
+    if (sp >= STACK_SIZE - 1) {  // uint8_t는 0~255만 표현 가능하므로 255 이상이면 overflow
         throw std::runtime_error("Stack overflow");
     }
+    // SP가 가리키는 위치에 값을 넣고
     stack_[sp] = value;
+    // SP를 1 증가시켜 다음 빈 칸을 가리키게 함
     regs_[(int)Reg::SP - 1] = sp + 1;
 }
 
@@ -63,8 +63,11 @@ std::uint8_t VMContext::pop() {
     if (sp == 0) {
         throw std::runtime_error("Stack underflow");
     }
-    std::uint8_t value = stack_[sp - 1];
-    regs_[(int)Reg::SP - 1] = sp - 1;
+    // SP를 하나 줄인다: 이제 줄어든 값이 top의 인덱스가 됨
+    sp -= 1;
+    regs_[(int)Reg::SP - 1] = sp;
+    // 줄어든 SP 위치의 값을 읽어서 반환
+    std::uint8_t value = stack_[sp];
     return value;
 }
 

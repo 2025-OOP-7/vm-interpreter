@@ -46,8 +46,8 @@ public:
     bool isFinished() const;
 
 private:
-    std::uint8_t regs_[10];  // R0(1), R1(2), R2(3), PC(4), SP(5), BP(6), ZF(7), CF(8), OF(9)
-    // 인덱스는 Reg enum 값 - 1로 접근 (R0=1이면 regs_[0])
+    std::uint8_t regs_[9];  // R0(1), R1(2), R2(3), PC(4), SP(5), BP(6), ZF(7), CF(8), OF(9)
+    // 인덱스는 Reg 값 - 1로 접근 (R0=1이면 regs_[0])
 
     bool ZF_;  // 플래그는 boolean으로 관리하되, 레지스터 접근도 지원
     bool CF_;
