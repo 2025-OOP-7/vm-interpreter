@@ -63,12 +63,11 @@ std::uint8_t VMContext::pop() {
     if (sp == 0) {
         throw std::runtime_error("Stack underflow");
     }
-    // SP를 하나 줄인다: 이제 줄어든 값이 top의 인덱스가 됨
-    sp -= 1;
-    regs_[(int)Reg::SP - 1] = sp;
-    // 줄어든 SP 위치의 값을 읽어서 반환
-    std::uint8_t value = stack_[sp];
-    return value;
+    // 정석적인 LIFO 스택 구현
+    // SP는 다음에 push할 위치를 가리키므로, SP-1이 실제 스택의 최상단 인덱스
+    sp -= 1;                              // SP를 먼저 감소시킴
+    regs_[(int)Reg::SP - 1] = sp;         // SP 업데이트
+    return stack_[sp];                    // 감소된 SP 위치의 값 반환
 }
 
 void VMContext::loadCode(const std::vector<std::uint32_t>& code) {
