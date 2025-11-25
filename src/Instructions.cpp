@@ -160,18 +160,25 @@ void CmpInstruction::execute(VMContext& ctx) {
     std::uint8_t dest = resolveValue(flag_, op1_, op2_, true, ctx);
     std::uint8_t src = resolveValue(flag_, op1_, op2_, false, ctx);
     
-    std::int16_t result = static_cast<std::int16_t>(dest) - static_cast<std::int16_t>(src);
-    std::uint8_t stored = static_cast<std::uint8_t>(result);
+    // int로 빼서 음수/양수 구분 (uint8_t끼리 빼면 5-8이 253처럼 나와서 구분 불가)
+    int result = static_cast<int>(dest) - static_cast<int>(src);
     
-    // 플래그 설정
-    // ZF: 저장되는 8bit 결과값이 0인가를 기준으로 계산 (ADD/SUB와 동일한 원칙)
-    ctx.setFlagZF(stored == 0);
-    ctx.setFlagCF(dest < src);  // borrow 발생
-    // OF: signed overflow 체크
-    std::int8_t signed_dest = static_cast<std::int8_t>(dest);
-    std::int8_t signed_src = static_cast<std::int8_t>(src);
-    std::int16_t signed_result = static_cast<std::int16_t>(signed_dest) - static_cast<std::int16_t>(signed_src);
-    ctx.setFlagOF(signed_result < -128 || signed_result > 127);
+    // 플래그 초기화: 모두 0으로 설정
+    ctx.setFlagZF(false);
+    ctx.setFlagCF(false);
+    ctx.setFlagOF(false);
+    
+    // 스펙대로 플래그 설정
+    if (result == 0) {
+        // result == 0 → ZF=1, CF=0, OF=0
+        ctx.setFlagZF(true);
+    } else if (result > 0) {
+        // result > 0 → ZF=0, CF=1, OF=0
+        ctx.setFlagCF(true);
+    } else {
+        // result < 0 → ZF=0, CF=0, OF=1
+        ctx.setFlagOF(true);
+    }
 }
 
 // ===== PUSH =====
@@ -232,7 +239,19 @@ JmpInstruction::JmpInstruction(std::uint8_t flag, std::uint8_t op1, std::uint8_t
 
 void JmpInstruction::execute(VMContext& ctx) {
     // 무조건 점프
-    std::uint8_t target = resolveValue(flag_, op1_, op2_, false, ctx);
+    // flag=2 (oneReg): op1이 레지스터 번호 → 레지스터 값 읽기
+    // flag=3 (oneIMM): op1이 즉값 → 그대로 사용
+    std::uint8_t target = 0;
+    if (flag_ == 2) {  // FLAG_ONE_REG
+        if (op1_ < 1 || op1_ > 9) {
+            throw std::runtime_error("JMP: invalid register index (must be 1-9)");
+        }
+        target = ctx.getRegister(static_cast<Reg>(op1_));
+    } else if (flag_ == 3) {  // FLAG_ONE_IMM
+        target = op1_;
+    } else {
+        throw std::runtime_error("JMP: invalid flag (must be oneReg or oneIMM)");
+    }
     ctx.jump(target);
 }
 
@@ -243,9 +262,24 @@ BeInstruction::BeInstruction(std::uint8_t flag, std::uint8_t op1, std::uint8_t o
 
 void BeInstruction::execute(VMContext& ctx) {
     // ZF가 true일 때 점프
-    if (ctx.getFlagZF()) {
-        std::uint8_t target = resolveValue(flag_, op1_, op2_, false, ctx);
+    bool zf = ctx.getFlagZF();
+    if (zf) {
+        // 분기 성공 → 점프
+        std::uint8_t target = 0;
+        if (flag_ == 2) {  // FLAG_ONE_REG
+            if (op1_ < 1 || op1_ > 9) {
+                throw std::runtime_error("BE: invalid register index (must be 1-9)");
+            }
+            target = ctx.getRegister(static_cast<Reg>(op1_));
+        } else if (flag_ == 3) {  // FLAG_ONE_IMM
+            target = op1_;
+        } else {
+            throw std::runtime_error("BE: invalid flag (must be oneReg or oneIMM)");
+        }
         ctx.jump(target);
+    } else {
+        // 분기 실패 → 다음 명령으로 (PC 증가)
+        ctx.incrementPC();
     }
 }
 
@@ -256,9 +290,24 @@ BneInstruction::BneInstruction(std::uint8_t flag, std::uint8_t op1, std::uint8_t
 
 void BneInstruction::execute(VMContext& ctx) {
     // ZF가 false일 때 점프
-    if (!ctx.getFlagZF()) {
-        std::uint8_t target = resolveValue(flag_, op1_, op2_, false, ctx);
+    bool zf = ctx.getFlagZF();
+    if (!zf) {
+        // 분기 성공 → 점프
+        std::uint8_t target = 0;
+        if (flag_ == 2) {  // FLAG_ONE_REG
+            if (op1_ < 1 || op1_ > 9) {
+                throw std::runtime_error("BNE: invalid register index (must be 1-9)");
+            }
+            target = ctx.getRegister(static_cast<Reg>(op1_));
+        } else if (flag_ == 3) {  // FLAG_ONE_IMM
+            target = op1_;
+        } else {
+            throw std::runtime_error("BNE: invalid flag (must be oneReg or oneIMM)");
+        }
         ctx.jump(target);
+    } else {
+        // 분기 실패 → 다음 명령으로 (PC 증가)
+        ctx.incrementPC();
     }
 }
 
